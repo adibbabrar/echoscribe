@@ -64,7 +64,7 @@ npm run note -- samples/standup.m4a
 npm run batch -- ./recordings
 ```
 
-Notes are written to `notes/` as Markdown. `batch` skips any recording that already has a note, so an interrupted run can be resumed by running it again.
+Notes are written to `notes/` as Markdown, with action items as `- [ ]` checkboxes you can tick off in Obsidian, GitHub or most notes apps. `batch` skips any recording that already has a note, so an interrupted run can be resumed by running it again.
 
 **Using your own audio.** Any `.mp3`, `.m4a`, `.ogg`, `.wav`, `.flac` or `.aac` file works. Voice Memos on macOS and iOS exports `.m4a` directly, so its recordings can be passed straight in.
 

@@ -1,6 +1,6 @@
 # standup.m4a
 
-_0:54 of audio, processed on-device in 3.8s._
+_0:54 of audio, processed on-device in 3.9s._
 
 ## Summary
 
@@ -8,12 +8,12 @@ The migration script for the user table was completed yesterday and ran clean ag
 
 ## Action items
 
-- Update the status page to reflect the new maintenance window. _(0:25)_
-- Notify support about the new maintenance window. _(0:25)_
-- Drop the legacy avatar column entirely. _(0:30)_
-- Write the rollback procedure before Friday. _(0:37)_
-- Review the rollback procedure before starting the migration. _(0:37)_
-- Resize the staging database to the new instance size. _(0:44)_
+- [ ] Update the status page to reflect the new maintenance window. _(0:25)_
+- [ ] Notify support about the new maintenance window. _(0:25)_
+- [ ] Drop the legacy avatar column entirely. _(0:30)_
+- [ ] Write the rollback procedure before Friday. _(0:37)_
+- [ ] Review the rollback procedure before starting the migration. _(0:37)_
+- [ ] Resize the staging database to the new instance size. _(0:44)_
 
 ## Decisions
 

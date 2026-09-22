@@ -12,14 +12,17 @@ import { formatTimestamp } from './segments.js'
  * lose real content because the matcher was unsure, which is the wrong trade:
  * a missing timestamp is a small gap, a missing action item is a bug.
  */
-function renderItem ({ text, startMs }) {
-  return startMs === null ? `- ${text}` : `- ${text} _(${formatTimestamp(startMs)})_`
+function renderItem ({ text, startMs }, marker) {
+  return startMs === null ? `${marker}${text}` : `${marker}${text} _(${formatTimestamp(startMs)})_`
 }
 
-function renderSection (heading, items, emptyNote) {
+// Action items are rendered as task-list checkboxes, so the note doubles as a
+// to-do list: Obsidian, GitHub and most Markdown editors let you tick them off
+// in place. Decisions are already settled, so they stay plain bullets.
+function renderSection (heading, items, emptyNote, marker = '- ') {
   if (items.length === 0) return `## ${heading}\n\n_${emptyNote}_`
 
-  return `## ${heading}\n\n${items.map(renderItem).join('\n')}`
+  return `## ${heading}\n\n${items.map((item) => renderItem(item, marker)).join('\n')}`
 }
 
 /**
@@ -52,7 +55,7 @@ export function renderNote ({ sourcePath, summary, actions, decisions, utterance
     '',
     summary || '_The model returned nothing for this recording._',
     '',
-    renderSection('Action items', actions, 'None found.'),
+    renderSection('Action items', actions, 'None found.', '- [ ] '),
     '',
     renderSection('Decisions', decisions, 'None found.'),
     '',
