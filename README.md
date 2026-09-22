@@ -32,7 +32,7 @@ Meeting notes and voice memos are the most sensitive audio most people produce â
 
 - **Node.js** >= 22.17 (`node -v`)
 - **A platform QVAC supports.** Built and tested on macOS 15.6 on an M4. See the [QVAC system requirements](https://docs.qvac.tether.io/system-requirements/) for Linux and Windows.
-- **About 5 GB of free disk.** `npm install` writes ~4.1 GB into `node_modules`, because the SDK ships native inference engines for every modality it supports. The two model files add ~855 MB, cached once under `~/.qvac`.
+- **About 6 GB of free disk.** `npm install` writes ~4.8 GB into `node_modules`, because the SDK ships native inference engines for every modality it supports. The two model files add ~855 MB, cached once under `~/.qvac`.
 
 ## Install
 
