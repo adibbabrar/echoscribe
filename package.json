@@ -1,0 +1,19 @@
+{
+  "name": "echoscribe",
+  "version": "0.1.0",
+  "description": "Turn any recording into structured notes — transcript, summary, decisions and timestamped action items — entirely on-device with Tether's QVAC SDK.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.17"
+  },
+  "scripts": {
+    "check": "node src/check.js",
+    "note": "node src/memo.js",
+    "batch": "node src/batch.js",
+    "samples": "node scripts/make-samples.js"
+  },
+  "dependencies": {
+    "@qvac/sdk": "^0.19.1"
+  }
+}

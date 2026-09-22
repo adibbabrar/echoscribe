@@ -1,0 +1,5 @@
+node_modules/
+notes/*
+!notes/.gitkeep
+!notes/standup.md
+.DS_Store
