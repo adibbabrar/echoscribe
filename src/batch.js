@@ -41,7 +41,9 @@ const pending = files.filter(
 )
 
 const skipped = files.length - pending.length
-if (skipped > 0) console.error(`  ${skipped} already has a note, skipping`)
+if (skipped > 0) {
+  console.error(`  skipping ${skipped} recording${skipped === 1 ? '' : 's'} that already ${skipped === 1 ? 'has a note' : 'have notes'}`)
+}
 
 if (pending.length === 0) {
   console.error('  Nothing to do. Delete a note to have it rebuilt.')
