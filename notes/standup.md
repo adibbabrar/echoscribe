@@ -1,10 +1,10 @@
 # standup.m4a
 
-_0:54 of audio, processed on-device in 4.0s._
+_0:54 of audio, processed on-device in 3.8s._
 
 ## Summary
 
-The team is planning to run the migration script against the production replica on Saturday night, with the goal of timing the process. However, the import process is expected to take longer than expected, with a 40-minute delay. To address this, the team has decided to move the migration to Saturday night instead of Thursday, and Priya will update the status page and notify support. Additionally, the team has agreed to drop the legacy avatar column entirely, as it has not been used since March.
+The migration script for the user table was completed yesterday and ran clean against the staging copy. Today, the migration script will be run against the production replica to time how long it takes. The migration was delayed due to the import taking 40 minutes, which is too long for the maintenance window announced. The team decided to move the migration to Saturday night instead of Thursday.
 
 ## Action items
 

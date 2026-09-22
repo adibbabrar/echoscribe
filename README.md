@@ -6,7 +6,7 @@ Turn a recording into a note you can actually use — summary, action items, dec
 $ npm run note -- samples/standup.m4a
 
 Summary
-The team is planning to run the migration script against the production replica...
+The migration script for the user table was completed yesterday and ran clean against the staging copy...
 
 Action items
   - Update the status page to reflect the new maintenance window. (0:25)

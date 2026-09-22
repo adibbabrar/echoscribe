@@ -128,13 +128,16 @@ export function dedupe (items) {
   return kept
 }
 
-const SUMMARY_INSTRUCTION =
-  'Summarise what was said in 2 to 4 sentences. Write it as a short paragraph, not a list.'
+// The last two sentences fix a real failure on the standup sample. The speaker
+// runs the replica test "today" and moves the migration to "Saturday night",
+// and the model merged the two, putting the replica test on Saturday and
+// calling the forty-minute import "a 40-minute delay".
+const SUMMARY_INSTRUCTION = [
+  'Summarise what was said in 2 to 4 sentences. Write it as a short paragraph, not a list.',
+  'Keep every day, time and number attached to the thing it was said about.',
+  'Do not move a plan to a different day, and do not turn a duration into a delay.'
+].join(' ')
 
-// Spelling out the three grammatical shapes a commitment takes is what made
-// this usable. Asked only for "things somebody said they would do", the model
-// returned whichever task was phrased most like an assignment and ignored the
-// speaker's own first-person commitments entirely.
 // Naming the two grammatical shapes a commitment takes is what made this
 // usable. Asked only for "things somebody said they would do", the model
 // returned whichever task was phrased most like an assignment, then looped:
