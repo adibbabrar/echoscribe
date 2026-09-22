@@ -20,6 +20,8 @@ Decisions
 
 Every action item carries the moment in the recording it came from, so you can go back and hear the context.
 
+![echoscribe writing a note from the standup sample](assets/screenshot.png)
+
 ## Why
 
 Meeting notes and voice memos are the most sensitive audio most people produce — salaries, health, half-formed ideas, other people's names. Sending them to a transcription service means handing all of that to somebody else's server.
