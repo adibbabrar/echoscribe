@@ -28,20 +28,27 @@ const SYSTEM_PROMPT = [
   '- Write plainly. No preamble, no sign-off, no commentary about the transcript itself.'
 ].join('\n')
 
+// Added only when the recording is not English. Timestamps are found by
+// matching each line's words against the transcript, so a note written in
+// English about a Spanish recording could not be placed at all. It is not in
+// the default prompt because on English audio it made the model copy whole
+// transcript sentences into the action list instead of rewriting them.
+const SAME_LANGUAGE_RULE = '\n- Write in the same language as the transcript.'
+
 /**
  * Run one completion and return the whole reply.
  *
  * Streaming is used even though nothing is displayed, because it lets long
  * replies arrive incrementally rather than sitting behind one large response.
  *
- * @param {string} modelId
+ * @param {{modelId: string, system: string}} model
  * @param {string} instruction  What to do with the transcript.
  * @param {string} transcript   The text to work from.
  * @returns {Promise<string>}
  */
-async function ask (modelId, instruction, transcript) {
+async function ask ({ modelId, system }, instruction, transcript) {
   const history = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: system },
     { role: 'user', content: `Transcript:\n"""\n${transcript}\n"""\n\n${instruction}` }
   ]
 
@@ -177,16 +184,16 @@ const DECISIONS_INSTRUCTION = [
  * inside an 8192-token context.
  *
  * @param {object} params
- * @param {string} params.modelId
+ * @param {{modelId: string, system: string}} params.model
  * @param {string} params.transcript
  * @param {Array} params.utterances
  * @param {(stage: string) => void} [params.onStage]
  * @returns {Promise<string>}
  */
-async function summarise ({ modelId, transcript, utterances, onStage = () => {} }) {
+async function summarise ({ model, transcript, utterances, onStage = () => {} }) {
   if (transcript.length <= SINGLE_PASS_CHARS) {
     onStage('summarising')
-    return ask(modelId, SUMMARY_INSTRUCTION, transcript)
+    return ask(model, SUMMARY_INSTRUCTION, transcript)
   }
 
   const groups = groupUtterances(utterances, CHUNK_CHARS)
@@ -194,13 +201,13 @@ async function summarise ({ modelId, transcript, utterances, onStage = () => {} 
 
   for (const [index, group] of groups.entries()) {
     onStage(`summarising part ${index + 1} of ${groups.length}`)
-    partials.push(await ask(modelId, SUMMARY_INSTRUCTION, toPlainText(group)))
+    partials.push(await ask(model, SUMMARY_INSTRUCTION, toPlainText(group)))
   }
 
   onStage('combining summaries')
 
   return ask(
-    modelId,
+    model,
     'Combine these notes from consecutive parts of one recording into a single summary of 3 to 5 sentences.',
     partials.join('\n\n')
   )
@@ -213,10 +220,10 @@ async function summarise ({ modelId, transcript, utterances, onStage = () => {} 
  * back through the model: a second pass over a list of action items tends to
  * merge unrelated ones together and drop the least-wordy.
  */
-async function extractList ({ modelId, transcript, utterances, instruction, label, onStage }) {
+async function extractList ({ model, transcript, utterances, instruction, label, onStage }) {
   if (transcript.length <= SINGLE_PASS_CHARS) {
     onStage(`finding ${label}`)
-    return dedupe(parseList(await ask(modelId, instruction, transcript)))
+    return dedupe(parseList(await ask(model, instruction, transcript)))
   }
 
   const groups = groupUtterances(utterances, CHUNK_CHARS)
@@ -224,7 +231,7 @@ async function extractList ({ modelId, transcript, utterances, instruction, labe
 
   for (const [index, group] of groups.entries()) {
     onStage(`finding ${label} in part ${index + 1} of ${groups.length}`)
-    items.push(...parseList(await ask(modelId, instruction, toPlainText(group))))
+    items.push(...parseList(await ask(model, instruction, toPlainText(group))))
   }
 
   // Deduplicated once at the end rather than per chunk: consecutive chunks of
@@ -239,22 +246,24 @@ async function extractList ({ modelId, transcript, utterances, instruction, labe
  * @param {object} params
  * @param {string} params.modelId
  * @param {Array<{text: string, startMs: number, endMs: number}>} params.utterances
+ * @param {boolean} [params.nonEnglish]  The recording is in another language.
  * @param {(stage: string) => void} [params.onStage]
  * @returns {Promise<{summary: string, actions: string[], decisions: string[], chunked: boolean}>}
  */
-export async function extractNote ({ modelId, utterances, onStage = () => {} }) {
+export async function extractNote ({ modelId, utterances, nonEnglish = false, onStage = () => {} }) {
   const transcript = toPlainText(utterances)
+  const model = { modelId, system: nonEnglish ? SYSTEM_PROMPT + SAME_LANGUAGE_RULE : SYSTEM_PROMPT }
 
-  const summary = await summarise({ modelId, transcript, utterances, onStage })
+  const summary = await summarise({ model, transcript, utterances, onStage })
 
   const actions = await extractList({
-    modelId, transcript, utterances, onStage,
+    model, transcript, utterances, onStage,
     instruction: ACTIONS_INSTRUCTION,
     label: 'action items'
   })
 
   const decisions = await extractList({
-    modelId, transcript, utterances, onStage,
+    model, transcript, utterances, onStage,
     instruction: DECISIONS_INSTRUCTION,
     label: 'decisions'
   })

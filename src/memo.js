@@ -4,7 +4,8 @@
 import { unloadModel, close } from '@qvac/sdk'
 import { existsSync, statSync, writeFileSync, mkdirSync } from 'node:fs'
 import { basename, extname, join, resolve } from 'node:path'
-import { ASR_MODEL, LLM_MODEL, LLM_CONTEXT, loadWithProgress } from './models.js'
+import { ASR_MODEL, LLM_MODEL, LLM_CONTEXT, asrConfig, loadWithProgress } from './models.js'
+import { parseCli } from './args.js'
 import { transcribeFile, isSupportedAudio, SUPPORTED_AUDIO_FORMATS } from './transcribe.js'
 import { extractNote } from './extract.js'
 import { locateAll } from './align.js'
@@ -29,7 +30,7 @@ const stage = (text) => process.stderr.write(`  ${text}...\n`)
  *
  * @returns {Promise<{notePath: string, summary: string, actions: Array, decisions: Array}>}
  */
-export async function processFile ({ asrModelId, llmModelId, filePath, notesDir = NOTES_DIR }) {
+export async function processFile ({ asrModelId, llmModelId, filePath, lang, notesDir = NOTES_DIR }) {
   const startedAt = Date.now()
 
   stage(`transcribing ${basename(filePath)}`)
@@ -42,6 +43,7 @@ export async function processFile ({ asrModelId, llmModelId, filePath, notesDir 
   const { summary, actions, decisions } = await extractNote({
     modelId: llmModelId,
     utterances,
+    nonEnglish: Boolean(lang) && lang !== 'en',
     onStage: stage
   })
 
@@ -89,10 +91,16 @@ export function printResult ({ notePath, summary, actions, decisions }) {
 
 // Only run as a script, so batch.js can import processFile without this firing.
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const input = process.argv[2]
+  let input, lang
+  try {
+    ({ input, lang } = parseCli())
+  } catch (error) {
+    console.error(error.message)
+    process.exit(1)
+  }
 
   if (!input) {
-    console.error('Usage: npm run note -- <audio-file>')
+    console.error('Usage: npm run note -- <audio-file> [--lang es|fr|...|auto]')
     console.error(`Supported formats: ${SUPPORTED_AUDIO_FORMATS.join(' ')}`)
     console.error('No recording to hand? Run `npm run samples` first.')
     process.exit(1)
@@ -117,7 +125,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let llmModelId
 
   try {
-    asrModelId = await loadWithProgress(ASR_MODEL, 'speech model')
+    asrModelId = await loadWithProgress(ASR_MODEL, 'speech model', asrConfig(lang))
     llmModelId = await loadWithProgress(LLM_MODEL, 'language model', {
       ctx_size: LLM_CONTEXT,
       // Greedy decoding. At the engine default the same recording produces a
@@ -126,7 +134,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       temp: 0
     })
 
-    const result = await processFile({ asrModelId, llmModelId, filePath })
+    const result = await processFile({ asrModelId, llmModelId, filePath, lang })
     printResult(result)
   } catch (error) {
     console.error(`\nFailed: ${error?.message ?? error}`)

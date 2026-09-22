@@ -20,6 +20,21 @@ export const LLM_MODEL = LLAMA_3_2_1B_INST_Q4_0
 // roughly 25 minutes of speech before the map-reduce path in extract.js kicks in.
 export const LLM_CONTEXT = 8192
 
+/**
+ * Whisper settings for a recording in a given language.
+ *
+ * Left unset, the engine assumes English, and a Spanish recording comes back
+ * half-translated with words missing ("jueves" was dropped on a test clip).
+ * With the language named, or "auto", the transcript is verbatim. Whisper's
+ * own translate option is not used: on the same clip it dropped the day too.
+ *
+ * @param {string} [lang]  A code such as "es", or "auto".
+ * @returns {object | undefined}
+ */
+export function asrConfig (lang) {
+  return lang ? { language: lang } : undefined
+}
+
 const megabytes = (bytes) => (bytes / 1e6).toFixed(1)
 
 /**

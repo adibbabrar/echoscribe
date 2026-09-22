@@ -68,6 +68,15 @@ Notes are written to `notes/` as Markdown. `batch` skips any recording that alre
 
 **Using your own audio.** Any `.mp3`, `.m4a`, `.ogg`, `.wav`, `.flac` or `.aac` file works. Voice Memos on macOS and iOS exports `.m4a` directly, so its recordings can be passed straight in.
 
+**Recordings in another language.** Pass the language's two-letter code, or `auto` to let Whisper detect it:
+
+```bash
+npm run note -- memo.m4a --lang es
+npm run batch -- ./recordings --lang auto
+```
+
+Without it, Whisper assumes English: on a Spanish test clip it half-translated the speech and dropped words. With `--lang es` the transcript came back word for word. The note is then written in the same language, because timestamps are found by matching each line against the transcript.
+
 **The first run downloads ~855 MB** of model weights. That happens once; every run after it is offline.
 
 Two sample recordings are committed so you can try it immediately. `npm run samples` regenerates them with macOS's `say` command if you want to change what they say.
@@ -146,6 +155,7 @@ A 1B model running on a laptop is not a large hosted one, and the honest failure
 - **Negation is sometimes dropped.** On the voice-memo sample, "I am not going to include the distributed case" comes back as a decision *to* include it. The contradiction is left visible rather than hidden, but it is a real error.
 - **Unusual proper nouns get mangled** by the speech model — "cache invalidation" becomes "cash and validation" on the sample. A larger Whisper build (`WHISPER_SMALL_Q8_0`) fixes most of these at roughly 3× the download.
 - **The line between an action and a decision is fuzzy**, and occasionally a real decision lands in the action list.
+- **Notes in other languages are rough.** `--lang` gives an accurate transcript, but the 1B model's notes on non-English speech are weaker than on English: on a Spanish clip it mostly repeated the transcript as its summary and wrote decisions half in English. `--lang auto` on an English recording also gets the non-English prompt, so leave the flag off for English.
 - **Speakers are not separated.** Whisper returns one stream of text, so a conversation between several people reads as a monologue.
 
 ## Project structure
@@ -161,6 +171,7 @@ echoscribe/
 │   ├── note.js        Markdown rendering
 │   ├── memo.js        One recording (npm run note)
 │   ├── batch.js       A folder of recordings (npm run batch)
+│   ├── args.js        The --lang option shared by note and batch
 │   └── check.js       Setup smoke test (npm run check)
 ├── scripts/
 │   └── make-samples.js  Regenerates the samples with macOS `say`

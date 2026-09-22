@@ -6,18 +6,27 @@
 import { unloadModel, close } from '@qvac/sdk'
 import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join, resolve, basename, extname } from 'node:path'
-import { ASR_MODEL, LLM_MODEL, LLM_CONTEXT, loadWithProgress } from './models.js'
+import { ASR_MODEL, LLM_MODEL, LLM_CONTEXT, asrConfig, loadWithProgress } from './models.js'
+import { parseCli } from './args.js'
 import { isSupportedAudio, SUPPORTED_AUDIO_FORMATS } from './transcribe.js'
 import { processFile } from './memo.js'
 
 const DEFAULT_INPUT = 'samples'
 const NOTES_DIR = 'notes'
 
-const input = resolve(process.argv[2] ?? DEFAULT_INPUT)
+let cli
+try {
+  cli = parseCli()
+} catch (error) {
+  console.error(error.message)
+  process.exit(1)
+}
+
+const input = resolve(cli.input ?? DEFAULT_INPUT)
 
 if (!existsSync(input) || !statSync(input).isDirectory()) {
-  console.error(`Not a folder: ${process.argv[2] ?? DEFAULT_INPUT}`)
-  console.error('Usage: npm run batch -- <folder-of-recordings>')
+  console.error(`Not a folder: ${cli.input ?? DEFAULT_INPUT}`)
+  console.error('Usage: npm run batch -- <folder-of-recordings> [--lang es|fr|...|auto]')
   process.exit(1)
 }
 
@@ -55,14 +64,14 @@ let llmModelId
 let failures = 0
 
 try {
-  asrModelId = await loadWithProgress(ASR_MODEL, 'speech model')
+  asrModelId = await loadWithProgress(ASR_MODEL, 'speech model', asrConfig(cli.lang))
   llmModelId = await loadWithProgress(LLM_MODEL, 'language model', { ctx_size: LLM_CONTEXT, temp: 0 })
 
   for (const [index, file] of pending.entries()) {
     console.error(`\n[${index + 1}/${pending.length}] ${basename(file)}`)
 
     try {
-      const { notePath } = await processFile({ asrModelId, llmModelId, filePath: file })
+      const { notePath } = await processFile({ asrModelId, llmModelId, filePath: file, lang: cli.lang })
       console.error(`  wrote ${notePath}`)
     } catch (error) {
       // One unreadable file should not abandon the rest of the folder.
